@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
         return res.status(201).json({ status: 'success', message: 'register success', data: { id: result.insertId } })
     } catch (error) {
         console.log(error)
-        res.status(500).json({ status: 'error', message: 'something wrong in server' })
+        res.status(500).json({ status: 'error', message: 'something wrong in serveer' })
     }
 }
 
