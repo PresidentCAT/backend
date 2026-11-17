@@ -48,3 +48,10 @@ const clearsignaturs = async (evaluatee_id) => {
     await pool.query(`
         UPDATE assignments SET signatur = NULL WHERE evaluatee_id = ?`,[evaluatee_id])
 }
+
+
+const report = async (evaluatee_id) => {
+    const[rows] = await pool.query(`
+        SELECT i.id, i.name, i.weight, a.self_score, a.evidence_url, a.evidence_file,
+        ROUND(AVG)`)
+}

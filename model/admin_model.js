@@ -103,6 +103,13 @@ const getcurrendate = async () => {
 }
 // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+const updateuser = async (id, username, email, password, fullname, salary, phone, czid, department, level) => {
+    const [rows] = await pool.query(`
+        UPDATE users SET username = ?, email = ?, password = ?, fullname = ?, salary = ?, phone = ?, czid = ?, department = ?, level = ?`,
+        [username, email, password, fullname, salary, phone, czid, department, level, id]
+    )
+    return rows[0]
+}
 
 const getuserbyid = async (id) => {
     const [row] = await pool.query(`
@@ -118,8 +125,15 @@ const getuserbyname = async (username) => {
     return row[0]
 }
 
+const deleteuser = async (id) => {
+    const [row] = await pool.query(`
+        DELETE users WHERE id = ?`,[id]
+    )
+    return row
+}
+
 module.exports = {createindicator, 
-    updateindicator, updateperiod, updatetopics, 
+    updateindicator, updateperiod, updatetopics, updateuser, deleteuser,
     getcurrendate, getindicator, getindicator2, 
     getperiod, gettopic, getuserbyid, getuserbyname,
 deleteindicator, deleteperiod, deletetopic, createindicator, createperiods, createtopics}

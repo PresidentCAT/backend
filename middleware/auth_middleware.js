@@ -1,14 +1,20 @@
 const jwt = require('jsonwebtoken')
 
 
-exports.vrftoken = (req, res , next) => {
-    const header = req.headers.authorization
-    if(!header) return res.status(401).json({status:'error', message:'no token'})
+exports.verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1]
+    if (!token) return res.status(401).json({ status: 'error', message: 'no token' })
+
     try {
-        req.user = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET)
+        req.user = jwt.verify(token, process.env.JWT_SECRET)
+
+        if (req.user.status === 0 && req.originalUrl !== '/api/auth/change-password') {
+            return res.status(403).json({ status: 'error', message: 'must change password first' })
+        }
+
         next()
-    } catch (error) {
-        return res.status(401).json({status:'error', message:'token invalid or expired'})
+    } catch {
+        res.status(401).json({ status: 'error', message: 'token invalid or expired' })
     }
 }
 
