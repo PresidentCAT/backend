@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt')
-const authmodel = require('../model/auth_model')
-const adminmodel = require('../model/admin_model')
+const model = require('../model/auth_model')
+const admin = require('../model/admin_model')
 
 
 const errorforerver =( res, error) => {
@@ -16,41 +16,69 @@ exports.getUsers =  async (req, res) => {
     }
 }
 
-
-
 exports.updateuser = async (req, res) => {
-    const {username, email, password, fullname, salary, phone, czid, department, level} = req.body
+    const { id } = req.params
+    const { username, password, email, fullname, salary, phone, czid, department, level } = req.body
     try {
-        if(!username || !email || !password  ||!fullname || !salary || !phone || !czid || !department || !level){
-            return res.status(400).json({status:'error', message:'plz fill all field'})
-        }
-            
+
+        if (!username || !email || !fullname || !salary || !phone || !czid || !department || !level)
+            return res.status(400).json({ status: 'error', message: 'pls fill all field' })
+
+        const user = await model.getuserbyid(id)
+        if (!user)
+            return res.status(404).json({ status: 'error', message: 'user not found' })
+
+        const check = await model.checkusername(username)
+        if (check && String(check.id) !== String(id))
+            return res.status(400).json({ status: 'error', message: 'username already used' })
+
+        const hash = password ? await bcrypt.hash(password, 10) : user.password
+
+        await model.updateuser(id, username, email, hash, fullname, salary, phone, czid, department, level)
+        return res.status(200).json({ status: 'success', message: 'updateuser success' })
     } catch (error) {
-        
+        console.log(error)
+        res.status(500).json({ status: 'error', message: 'something wrong in server' })
     }
 }
-
-
 
 exports.createuser = async (req, res) => {
-    const {username, password, fullname, email, role} = req.body
-    try{
-    if(!username || !password || !fullname || !email || !role)
-        return res.status(400).json({status:'error', message:'plz fill all filed'})
+    const { username, password, email, fullname, salary, phone, czid, department, level } = req.body
+    console.log(req.body);
+    try {
+        if (!username || !password || !email || !fullname || !salary || !phone || !czid || !department || !level)
+            return res.status(400).json({ status: 'error', message: 'pls fill all field' })
 
-    const check = await model.checkusername(username)
-    if(check)
-        return res.status(400).json({status:'error', message:'this username alerdy use'})
+        const check = await model.checkusername(username)
+        if (check)
+            return res.status(400).json({ status: 'error', message: 'username already used' })
 
-    const hash = await bcrypt.hash(password, 10)
-    const result = await model.register(username, hash, fullname, email, 'noob')
-    res.status(201).json({status:'success', message:'user create', data:{id:result.insertId}})
-    }catch(error){
-        errorforerver(res, error)
+        const hash = await bcrypt.hash(password, 10)
+        const result = await model.createuser(username, email, hash, fullname, salary, phone, czid, department, level)
+        return res.status(201).json({ status: 'success', message: 'createuser success', data: { id: result.insertId } })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ status: 'error', message: 'something wrong in serveer' })
     }
 }
 
+exports.deleteuser = async (req ,res) => {
+    const { id } = req.params
+    try {
+        const user = await model.finduserbyid(id)
+        if(!user)
+            return res.status(404).json({status:'error', message:'cannot find user'})
 
+
+        await model.deleteuser(id)
+        return res.status(201).json({status:'success', message:'delete user success'})
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({status:'error', message:'server error'});
+    }
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 exports.createtopic = async (req, res) => {
     const { name } = req.body
     try{
@@ -63,9 +91,9 @@ exports.createtopic = async (req, res) => {
     }
 }
 
-exports.gettopic =  async (req, res) => {
+exports.gettopics =  async (req, res) => {
     try {
-        const data = await model.gettopic(req.query.role)
+        const data = await model.gettopics(req.query.role)
         res.json({status:'success', message:'ok', data})
     } catch (error) {
         errorforerver(res, error)

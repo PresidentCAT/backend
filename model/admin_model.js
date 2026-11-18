@@ -1,5 +1,43 @@
 const { pool } = require('../config/db')
 
+
+const getuserbyname = async (username) => {
+    const [row] = await pool.query(`
+        SELECT username FROM users WHERE username = ?`,[username]
+    )
+    return row[0]
+}
+
+const updateuser = async (id, username, email, password, fullname, salary, phone, czid, department, level) => {
+    const [rows] = await pool.query(`
+        UPDATE users SET username = ?, email = ?, password = ?, fullname = ?, salary = ?, phone = ?, czid = ?, department = ?, level = ?`,
+        [username, email, password, fullname, salary, phone, czid, department, level, id]
+    )
+    return rows[0]
+}
+
+const getuserbyid = async (id) => {
+    const [row] = await pool.query(`
+        SELECT * FROM users WHERE id`,[id]
+    )
+    return row[0]
+}
+
+const deleteuser = async (id) => {
+    const [row] = await pool.query(`
+        DELETE users WHERE id = ?`,[id]
+    )
+    return row
+}
+
+
+
+
+
+
+
+
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 const createtopics = async (name) => {
     const [row] = await pool.query(`
         INSERT INTO topics (name) VALUES (?)`,[name]
@@ -13,6 +51,7 @@ const gettopic = async () => {
     )
     return row
 }
+
 
 const deletetopic = async (id) => {
     const [row] = await pool.query(`
@@ -36,14 +75,14 @@ const createindicator = async (topic_id, name, detail, weight, evidence_note, sc
     return row
 }
 
-const getindicator = async (topic_id) => {
+const getindicators = async (topic_id) => {
     const [row] = await pool.query(`
         SELECT * FROM indicators WHERE topic_id = ?`,[topic_id]
     )
     return row[0]
 }
 
-const getindicator2 = async (id) => {
+const getindicators2 = async (id) => {
     const [row] = await pool.query(`
         SELECT * FROM indicators WHERE id = ?`,[id]
     )
@@ -103,37 +142,12 @@ const getcurrendate = async () => {
 }
 // //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const updateuser = async (id, username, email, password, fullname, salary, phone, czid, department, level) => {
-    const [rows] = await pool.query(`
-        UPDATE users SET username = ?, email = ?, password = ?, fullname = ?, salary = ?, phone = ?, czid = ?, department = ?, level = ?`,
-        [username, email, password, fullname, salary, phone, czid, department, level, id]
-    )
-    return rows[0]
-}
 
-const getuserbyid = async (id) => {
-    const [row] = await pool.query(`
-        SELECT * FROM users WHERE id`,[id]
-    )
-    return row[0]
-}
 
-const getuserbyname = async (username) => {
-    const [row] = await pool.query(`
-        SELECT username FROM users WHERE username = ?`,[username]
-    )
-    return row[0]
-}
 
-const deleteuser = async (id) => {
-    const [row] = await pool.query(`
-        DELETE users WHERE id = ?`,[id]
-    )
-    return row
-}
 
 module.exports = {createindicator, 
     updateindicator, updateperiod, updatetopics, updateuser, deleteuser,
-    getcurrendate, getindicator, getindicator2, 
+    getcurrendate, getindicators, getindicators2, 
     getperiod, gettopic, getuserbyid, getuserbyname,
 deleteindicator, deleteperiod, deletetopic, createindicator, createperiods, createtopics}

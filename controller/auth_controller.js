@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt')
 const model = require('../model/auth_model')
 const jwt = require('jsonwebtoken')
+const evalmodel = require('../model/evalmodel')
 
 exports.register = async (req, res) => {
     const { username, password, email, fullname, salary, phone, czid, department, level } = req.body
@@ -58,7 +59,7 @@ exports.changePassword = async (req, res) => {
         if (old_password === new_password)
             return res.status(400).json({ status: 'error', message: 'new password must be different' })
 
-        const user = await model.findById(req.user.id)
+        const user = await model.findbyid(req.user.id)
         const match = await bcrypt.compare(old_password, user.password)
         if (!match) return res.status(400).json({ status: 'error', message: 'old password is wrong' })
 
@@ -76,5 +77,45 @@ exports.changePassword = async (req, res) => {
     } catch (error) {
         console.log(error)
         res.status(500).json({ status: 'error', message: 'something wrong in server' })
+    }
+}
+
+exports.form = async (req, res) => {
+    try {
+        const data = await evalmodel.myanswers(req.user.id)
+        res.json({ status: 'success', message: 'ok', data })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ status: 'error', message: 'something wrong in server' })
+    }
+}
+
+
+exports.updateprofile = async (req, res) => {
+    const userId = req.user.id; // ดึง id ของผู้ใช้ที่กำลัง login อยู่
+    const { username, fullname, email, phone, czid, salary, department, level } = req.body;
+    console.log(req.body);
+
+    try {
+        if (!username ||!fullname || !email || !phone || !czid || !salary || !department || !level)
+            return res.status(400).json({ status: 'error', message: 'pls fill all field' })
+
+        // ส่ง userId เข้าไปเป็นตัวแรก (หรือตัวสุดท้ายให้ตรงกับโครงสร้างใน Model)
+        await model.updateprofile(userId, { username, fullname, email, phone, czid, salary, department, level });
+
+        return res.status(200).json({ status: 'success', message: 'updateuser success' })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ status: 'error', message: 'something wrong in server' })
+    }
+}
+
+exports.getProfile = async (req, res) => {
+    try {
+        const data = await model.getProfile(req.user.id)
+        res.json({ status: 'success', message: 'ok', data })
+    } catch (error) {
+         console.log(error)
+        res.status(500).json({ status: 'error', message: 'profile cannot be get' })
     }
 }
