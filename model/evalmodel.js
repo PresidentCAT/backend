@@ -26,27 +26,32 @@ const saveanswer = async (evaluatee_id, indicator_id, self_score, evidence_url, 
 
 // ตัวชี้วัดทั้งหมด + คำตอบ/หลักฐานของคนนี้ (ไว้แสดงหน้าฟอร์ม)
 const myanswers = async (evaluatee_id) => {
-    const [rows] = await pool.query(
-        `SELECT i.id AS indicator_id, i.topic_id, i.name, i.detail, i.weight,
-                i.evidence_note, i.score_type,
-                a.self_score, a.evidence_url, a.evidence_file
-         FROM indicators i
-         LEFT JOIN answers a ON a.indicator_id = i.id AND a.evaluatee_id = ?
-         ORDER BY i.topic_id, i.id`,
-        [evaluatee_id])
-    return rows
+    const [indicators] = await pool.query(`SELECT * FROM indicators ORDER BY topic_id, id`)
+    const [answers] = await pool.query(`SELECT * FROM answers WHERE evaluatee_id = ?`, [evaluatee_id])
+
+    return indicators.map((i) => {
+        const a = answers.find((x) => x.indicator_id === i.id)
+        return {
+            ...i,
+            indicator_id: i.id,
+            self_score: a ? a.self_score : null,
+            evidence_url: a ? a.evidence_url : null,
+            evidence_file: a ? a.evidence_file : null,
+        }
+    })
 }
 
+// ความคืบหน้าแยกหัวข้อ: ตอบแล้วกี่ข้อ จากทั้งหมดกี่ข้อ
 const myprogress = async (evaluatee_id) => {
-    const [rows] = await pool.query(
-        `SELECT t.id AS topic_id, t.name AS topic,
-                COUNT(i.id) AS total, COUNT(a.indicator_id) AS answered
-         FROM topics t
-         JOIN indicators i ON i.topic_id = t.id
-         LEFT JOIN answers a ON a.indicator_id = i.id AND a.evaluatee_id = ?
-         GROUP BY t.id, t.name`,
-        [evaluatee_id])
-    return rows
+    const [topics] = await pool.query(`SELECT * FROM topics`)
+    const [indicators] = await pool.query(`SELECT id, topic_id FROM indicators`)
+    const [answers] = await pool.query(`SELECT indicator_id FROM answers WHERE evaluatee_id = ?`, [evaluatee_id])
+
+    return topics.map((t) => {
+        const inTopic = indicators.filter((i) => i.topic_id === t.id)
+        const done = inTopic.filter((i) => answers.some((a) => a.indicator_id === i.id))
+        return { topic_id: t.id, topic: t.name, total: inTopic.length, answered: done.length }
+    })
 }
 
 module.exports = {

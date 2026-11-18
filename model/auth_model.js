@@ -14,7 +14,7 @@ const register = async (username, email, password, fullname, salary, phone, czid
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ผู้รับการประเมิน', 'user', 0)`,
         [username, email, password, fullname, salary, phone, czid, department, level]
     )
-    return row.insertId || null
+    return row
 }
 
 const findbyusername = async (username) => {
@@ -42,7 +42,6 @@ const getProfile = async (id) => {
     return rows[0] || null
 }
 
-// แก้ไขข้อมูลส่วนตัว
 const updateprofile = async (id, data) => {
     console.log('--- Debug ID ---', id);
     const [result] = await pool.query(

@@ -66,7 +66,6 @@ exports.changePassword = async (req, res) => {
         const hash = await bcrypt.hash(new_password, 10)
         await model.changePassword(req.user.id, hash)
 
-        // ออก token ใหม่ที่ status = 1 (token เดิมยังเป็น 0 อยู่)
         const token = jwt.sign(
             { id: req.user.id, username: req.user.username, role: req.user.role, status: 1 },
             process.env.JWT_SECRET,
